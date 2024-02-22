@@ -17,12 +17,15 @@ router.register(r'actividadesia', ActividadIAViewSet, basename='actividadia')
 router.register(r'respuestasact', RespuestaActViewSet, basename='respuestaact')
 
 urlpatterns = [
+    # Rutas para la API
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('', views.docentes, name='docentes'),  # URL para la página inicial (docentes.html)
-    path('listar-docentes/', views.listar_docentes, name='listar_docentes'),  # URL para listar docentes
-    path('agregar-docente/', views.agregar_docente, name='agregar_docente'),  # URL para agregar docente
-    path('buscar/', views.buscar_docente, name='buscar_docente'),
-    path('editar-docente/<int:pk>/', views.editar_docente, name='editar_docente'),
-    path('eliminar-docente/<int:pk>/', views.eliminar_docente, name='eliminar_docente'),
-  ]
+    
+    # Rutas para las vistas de la aplicación
+    path('', views.docentes, name='docentes'),  # Página inicial (docentes.html)
+    path('listar-docentes/', views.listar_docentes, name='listar_docentes'),  # Listar docentes
+    path('agregar-docente/', views.agregar_docente, name='agregar_docente'),  # Agregar docente
+    path('buscar/', views.buscar_docente, name='buscar_docente'),  # Buscar docente
+    path('editar-docente/<int:pk>/', views.editar_docente, name='editar_docente'),  # Editar docente
+    path('eliminar-docente/<int:pk>/', views.eliminar_docente, name='eliminar_docente'),  # Eliminar docente
+]

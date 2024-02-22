@@ -116,6 +116,7 @@ class Docente(models.Model):
     correo = models.EmailField()
     telefono = models.CharField(max_length=15)
     especialidad = models.CharField(max_length=100)
+    activo = models.BooleanField(default=True)  # Nuevo campo para representar el estado del docente
 
     def __str__(self):
         return self.nombre

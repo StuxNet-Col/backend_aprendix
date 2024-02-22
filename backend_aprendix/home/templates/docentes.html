@@ -3,39 +3,227 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administrar Docentes</title>
+  <title>Administración de Docentes</title>
   <!-- Enlace al archivo CSS de Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Estilos personalizados */
+    .card {
+      border-radius: 10px;
+    }
+    .card-header {
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 10px 10px 0 0;
+    }
+    .card-body {
+      padding: 20px;
+    }
+    .form-control {
+      border-radius: 20px;
+    }
+    .btn {
+      border-radius: 20px;
+    }
+    .list-group-item {
+      border: none;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      justify-content: center;
+    }
+    .toggle-btn {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: #ccc;
+      border: none;
+      width: 50px;
+      height: 25px;
+      border-radius: 25px;
+      outline: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      position: relative;
+    }
+    .toggle-btn:before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: white;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: transform 0.3s, background-color 0.3s;
+    }
+    .toggle-btn:checked:before {
+      transform: translate(25px, -50%);
+    }
+    .toggle-btn:checked {
+      background-color: #5cb85c;
+    }
+    .details-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    .details-content {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 80%;
+      overflow: auto;
+    }
+    .subtitulo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px; /* Distancia entre el subtitulo y el botón */
+    }
+    .subtitulo h5 {
+      margin-right: 20px; /* Espacio entre el texto del subtitulo y el botón */
+    }
+    .titulo-principal {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
 
-<!-- Contenedor principal utilizando Bootstrap -->
+<!-- Titulo principal -->
 <div class="container mt-5">
-  <!-- Fila de la cuadrícula de Bootstrap, centrada horizontalmente -->
-  <div class="row justify-content-center">
-    <!-- Columna de tamaño medio -->
+  <h1 class="titulo-principal">Administración de Docentes</h1>
+
+  <!-- Barra de búsqueda -->
+  <div class="row justify-content-center mb-3">
     <div class="col-md-6">
-      <!-- Tarjeta de Bootstrap -->
+      <!-- Contenido de buscar_docente.html -->
       <div class="card">
-        <!-- Encabezado de la tarjeta -->
         <div class="card-header">
-          <!-- Título del encabezado -->
-          <h5 class="card-title mb-0 text-center">Administrar Docentes</h5>
+          <h5 class="card-title mb-0 text-center">Buscar Docente</h5>
         </div>
-        <!-- Cuerpo de la tarjeta -->
         <div class="card-body">
-          <!-- Botones para administrar docentes -->
-          <div class="d-grid gap-2">
-            <a href="{% url 'agregar_docente' %}" class="btn btn-primary">Agregar Docente</a>
-            <a href="{% url 'listar_docentes' %}" class="btn btn-secondary">Listar Docentes</a>
-            <a href="{% url 'buscar_docente' %}" class="btn btn-info">Buscar Docente</a>
-                       
-          </div>
+          <form method="post">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+              <input type="text" name="termino_busqueda" class="form-control" placeholder="Buscar docente..." aria-label="Buscar docente..." aria-describedby="button-addon2">
+              <button class="btn btn-primary" type="submit" id="button-addon2">Buscar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Subtítulo y botón para agregar docente -->
+  <div class="row justify-content-start mb-3 subtitulo">
+    <div class="col-md-6">
+      <h5 class="mb-0">Docentes:</h5>
+    </div>
+    <div class="col-md-6">
+      <a href="{% url 'agregar_docente' %}" class="btn btn-primary">+ Docente</a>
+    </div>
+  </div>
+
+  <!-- Dashboard de docentes -->
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for docente in docentes %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ docente.nombre }}</td>
+            <td>{{ docente.correo }}</td>
+            <td>
+              <!-- Botón interruptor para cambiar entre activo e inactivo -->
+              <input type="checkbox" class="toggle-btn" id="estado{{ docente.pk }}" checked>
+            </td>
+            <td>
+              <!-- Botones de acciones -->
+              <a href="{% url 'editar_docente' docente.pk %}" class="btn btn-primary btn-sm">Editar</a>
+              <button type="button" class="btn btn-danger btn-sm" onclick="confirmarEliminacion('{{ docente.pk }}')">Eliminar</button>
+              <!-- Botón para mostrar detalles -->
+              <button type="button" class="btn btn-info btn-sm" onclick="mostrarDetalles('{{ docente.nombre }}', '{{ docente.correo }}', '{{ docente.telefono }}', '{{ docente.especialidad }}', '{{ docente.estado }}')">+ Detalles</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Botón para volver a la administración de docentes -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="text-center">
+        <a href="{% url 'docentes' %}" class="btn btn-secondary mt-3">Volver a la administración de docentes</a>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Detalles del Docente Modal -->
+<div id="detailsModal" class="details-modal">
+  <div class="details-content">
+    <h5>Detalles del Docente</h5>
+    <p><strong>Nombre:</strong> <span id="docenteNombre"></span></p>
+    <p><strong>Email:</strong> <span id="docenteCorreo"></span></p>
+    <p><strong>Teléfono:</strong> <span id="docenteTelefono"></span></p>
+    <p><strong>Especialidad:</strong> <span id="docenteEspecialidad"></span></p>
+    <p><strong>Estado:</strong> <span id="docenteEstado"></span></p>
+    <button type="button" class="btn btn-secondary" onclick="cerrarDetalles()">Cerrar</button>
+  </div>
+</div>
+
+<!-- Script de JavaScript para confirmar la eliminación y mostrar detalles -->
+<script>
+  function confirmarEliminacion(docenteId) {
+    if (confirm("¿Estás seguro de que deseas eliminar este docente?")) {
+      var form = document.createElement("form");
+      form.setAttribute("method", "post");
+      form.setAttribute("action", "{% url 'eliminar_docente' 0 %}".replace('0', docenteId));
+      var csrfToken = document.createElement("input");
+      csrfToken.setAttribute("type", "hidden");
+      csrfToken.setAttribute("name", "csrfmiddlewaretoken");
+      csrfToken.setAttribute("value", "{{ csrf_token }}");
+      form.appendChild(csrfToken);
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function mostrarDetalles(nombre, correo, telefono, especialidad, estado) {
+    document.getElementById('docenteNombre').textContent = nombre;
+    document.getElementById('docenteCorreo').textContent = correo;
+    document.getElementById('docenteTelefono').textContent = telefono;
+    document.getElementById('docenteEspecialidad').textContent = especialidad;
+    document.getElementById('docenteEstado').textContent = estado;
+    document.getElementById('detailsModal').style.display = 'flex';
+  }
+
+  function cerrarDetalles() {
+    document.getElementById('detailsModal').style.display = 'none';
+  }
+</script>
 
 </body>
 </html>
